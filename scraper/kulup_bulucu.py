@@ -65,6 +65,7 @@ NOISE_RE = re.compile(
     r"kul[üu]pler(i|imiz)?\b|\bclubs\b|topluluklar|"
     r"etkinli[ğg]i|event|workshop|screening|sempozyum|welcome|quiz|night|activities|"
     r"tan[ıi][şs]ma|tak[ıi]m[ıi]m[ıi]z|proje|project|kul[üu]p ba[şs]kan|[üu]yeli[ğg]i|ilkeler|"
+    r"dan[ıi][şs]man|koordinat[öo]r|sorumlu|advisor|"
     r"\b20\d\d\b|\s[xX]\s",
     re.I,
 )
@@ -384,6 +385,10 @@ def postprocess(clubs: list[Club]) -> list[Club]:
         shared = {h for h, n in counts.items() if n >= 3}
         for c in uni_clubs:
             c.instagram -= shared
+            if len(c.eposta) > 3:      # bir kulübün 3'ten fazla e-postası olmaz: yanlış eşleşme
+                c.eposta = set()
+            if len(c.instagram) > 2:
+                c.instagram = set()
             if not c.instagram and not c.eposta:
                 c.guven = "orta"
     return result
@@ -412,26 +417,54 @@ def upload_to_supabase(clubs: list[Club]) -> None:
     if key.startswith("eyJ"):  # eski tip (JWT) anahtar
         headers["Authorization"] = f"Bearer {key}"
 
+    def fit_emails(emails: set[str], limit: int = 300) -> str:
+        out = ""
+        for e in sorted(emails):
+            cand = f"{out} {e}".strip()
+            if len(cand) > limit:
+                break
+            out = cand
+        return out
+
     rows = [{
-        "universite": c.universite,
-        "kulup": c.kulup,
-        "kulup_key": norm_key(c.kulup) or c.kulup.lower(),
-        "instagram": sorted(c.instagram)[0] if c.instagram else "",
-        "eposta": " ".join(sorted(c.eposta)),
+        "universite": c.universite[:150],
+        "kulup": c.kulup[:150],
+        "kulup_key": (norm_key(c.kulup) or c.kulup.lower())[:150],
+        "instagram": sorted(c.instagram)[0][:200] if c.instagram else "",
+        "eposta": fit_emails(c.eposta),
         "kaynak": c.kaynak[:500],
         "guven": c.guven,
     } for c in clubs]
 
+    def post(batch: list[dict]):
+        return requests.post(f"{url}/rest/v1/rpc/kulupleri_yukle", headers=headers,
+                             json={"satirlar": batch}, timeout=60)
+
     added = updated = 0
+    skipped: list[str] = []
     for i in range(0, len(rows), 200):
-        r = requests.post(f"{url}/rest/v1/rpc/kulupleri_yukle", headers=headers,
-                          json={"satirlar": rows[i:i + 200]}, timeout=60)
+        batch = rows[i:i + 200]
+        r = post(batch)
+        if r.status_code in (401, 403):
+            sys.exit(f"Supabase anahtarı reddedildi (HTTP {r.status_code}). SUPABASE_SERVICE_KEY doğru mu?")
         if r.status_code >= 400:
-            sys.exit(f"Supabase'e yüklenemedi (HTTP {r.status_code}): {r.text[:300]}")
+            # Bir satır hatalıysa bütün grup reddedilir: satırları tek tek dene, bozuk olanı atla
+            for row in batch:
+                r1 = post([row])
+                if r1.status_code >= 400:
+                    skipped.append(f"{row['universite']} / {row['kulup']}: {r1.text[:120]}")
+                    continue
+                res = r1.json()[0]
+                added += res["eklenen"]
+                updated += res["guncellenen"]
+            continue
         res = r.json()[0]
         added += res["eklenen"]
         updated += res["guncellenen"]
-    print(f"☁️  Supabase: {added} yeni kulüp eklendi, {updated} kulübün eksik bilgisi dolduruldu.")
+    for line in skipped:
+        print(f"   ⚠️  atlandı: {line}")
+    print(f"☁️  Supabase: {added} yeni kulüp eklendi, {updated} kulübün eksik bilgisi dolduruldu"
+          f"{f', {len(skipped)} satır atlandı' if skipped else ''}.")
 
 
 def write_outputs(clubs: list[Club], out_dir: Path) -> None:

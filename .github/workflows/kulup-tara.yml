@@ -11,6 +11,11 @@ on:
         description: "Sadece adında bu metin geçen üniversiteler (boş = hepsi)"
         required: false
         default: ""
+      sadece_yukle:
+        description: "Tarama yapma: son taramanın sonucunu temizleyip Supabase'e yükle"
+        type: boolean
+        required: false
+        default: false
   # Haftalık otomatik tarama istersen aşağıdaki iki satırın başındaki # işaretini kaldır
   # (Pazartesi 06:00 İstanbul saati):
   # schedule:
@@ -18,6 +23,7 @@ on:
 
 permissions:
   contents: read
+  actions: read   # "sadece yükle" modunda önceki çalışmanın sonuç dosyasını indirmek için
 
 concurrency:
   group: kulup-tara
@@ -42,17 +48,47 @@ jobs:
       - name: Paketleri kur
         run: pip install -r requirements.txt
 
+      - name: Secret'ları kontrol et
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_SERVICE_KEY" ]; then
+            echo "::error::SUPABASE_URL ve SUPABASE_SERVICE_KEY secret'ları eksik. README'deki 3. adıma bak."
+            exit 1
+          fi
+
+      - name: Son taramanın sonucunu indir
+        if: ${{ inputs.sadece_yukle }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for id in $(gh run list -R "$GITHUB_REPOSITORY" --workflow kulup-tara.yml --status completed \
+                        --limit 30 --json databaseId -q '.[].databaseId'); do
+            if gh run download "$id" -R "$GITHUB_REPOSITORY" -n kulupler -D cikti 2>/dev/null; then
+              echo "Çalışma #$id sonucu indirildi."
+              exit 0
+            fi
+          done
+          echo "::error::İndirilecek önceki tarama sonucu bulunamadı (sonuçlar 14 gün saklanır). Önce normal tarama çalıştır."
+          exit 1
+
+      - name: Sonucu temizle ve Supabase'e yükle
+        if: ${{ inputs.sadece_yukle }}
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          PYTHONUNBUFFERED: "1"
+        run: python kulup_bulucu.py --temizle
+
       - name: Kulüpleri tara ve Supabase'e yükle
+        if: ${{ !inputs.sadece_yukle }}
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
           SADECE: ${{ inputs.sadece }}
           PYTHONUNBUFFERED: "1"   # log satırları biriktirilmeden anında görünsün
         run: |
-          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_SERVICE_KEY" ]; then
-            echo "::error::SUPABASE_URL ve SUPABASE_SERVICE_KEY secret'ları eksik. README'deki 3. adıma bak."
-            exit 1
-          fi
           if [ -n "$SADECE" ]; then
             python kulup_bulucu.py --sadece "$SADECE"
           else

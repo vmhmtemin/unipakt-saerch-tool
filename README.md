@@ -80,6 +80,8 @@ Repo → **Actions → Kulüp tarama → Run workflow**
 - **"Sadece…"** kutusu boşsa `universiteler.json`'daki tüm üniversiteler taranır.
 - Tek üniversite için adının bir kısmını yaz (örn. `Maltepe`).
 - Bitince özet, işin loglarında görünür; `kulupler` adlı sonuç dosyası da indirilebilir.
+- **"Sadece yükle"** kutusunu işaretlersen tarama yapılmaz: son taramanın sonuç dosyası temizlenip Supabase'e
+  tekrar yüklenir. Tarama bitti ama yükleme bir hatayla yarıda kaldıysa saatlerce yeniden taramak yerine bunu kullan.
 - Haftalık otomatik tarama istersen `kulup-tara.yml` içindeki `schedule` satırlarının başındaki `#` işaretlerini kaldır.
 
 ### Yeni üniversite ekleme
