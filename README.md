@@ -8,7 +8,9 @@ GitHub Pages    → index.html (panel)
 Supabase        → UniPakt.Davet projesi: kulüpler, durumlar, kim yazdı, notlar
 ```
 
-- **Panel**: tek ekranda tablo. Satıra tıkla → Instagram profilini aç, hazır mesajı kopyala, durumu işaretle.
+- **Panel**: üniversiteler listesi, tıklayınca kulüpleri açılır. Kulübe tıkla → Instagram profilini aç, hazır mesajı kopyala, durumu işaretle.
+- **Takvim**: kulüp penceresinden görüşme ekle (tarih, saat, kiminle, bizden kim, link). Takvim sekmesinde ay görünümü ve
+  yaklaşan görüşmeler listesi; her görüşme tek tıkla Google Takvim'e de eklenebilir.
 - **Tarama**: GitHub'da tek tuşla çalışır, bilgisayarının açık olması gerekmez.
 - Tarama **yeni kulüpleri ekler, mevcut kulüplerin durumuna/notuna asla dokunmaz.** Sadece boş kalmış Instagram/e-posta alanını doldurabilir.
 
