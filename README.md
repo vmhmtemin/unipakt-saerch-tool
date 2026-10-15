@@ -66,7 +66,7 @@ Repo → **Settings → Secrets and variables → Actions → New repository sec
 
 Repo → **Settings → Pages → Build and deployment → Deploy from a branch → `main` / `(root)` → Save**
 
-Bir-iki dakika sonra panel `https://<kullanıcı-adın>.github.io/unipakt-saerch-tool/` adresinde açılır.
+Bir-iki dakika sonra panel `https://vmhmtemin.github.io/unipakt-saerch-tool/` adresinde açılır.
 Bu linki Ömer ve Uğur'la paylaş; ortak hesapla giriş yapıp **"Ben:"** kısmından kendi adını seçsinler (tarayıcı hatırlar).
 
 ---
