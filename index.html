@@ -1,0 +1,643 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>UniPakt Davet Paneli</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+<style>
+/* =========================================================================
+   UniPakt Davet Paneli
+   Tasarım dili: siyah-beyaz, sade, nokta motifi (unipakt.com ile uyumlu)
+   ========================================================================= */
+:root {
+  --ink: #000;
+  --paper: #fff;
+  --grey-1: #f4f4f4;
+  --grey-2: #e4e4e4;
+  --grey-3: #9a9a9a;
+  --grey-4: #5c5c5c;
+  --radius: 10px;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--paper); color: var(--ink);
+  font: 14px/1.45 "Inter", system-ui, -apple-system, sans-serif; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+a { color: inherit; }
+.hidden { display: none !important; }
+
+/* ---------- Giriş ekranı ---------- */
+#login { min-height: 100vh; display: grid; place-items: center; padding: 16px;
+  background-image: radial-gradient(var(--grey-2) 1.2px, transparent 1.2px);
+  background-size: 18px 18px; }
+.login-card { background: var(--paper); border: 1px solid var(--ink); border-radius: var(--radius);
+  padding: 32px; width: 100%; max-width: 360px; }
+.login-card h1 { font-size: 30px; font-weight: 800; margin: 0 0 4px; letter-spacing: -0.02em; }
+.login-card p { margin: 0 0 24px; color: var(--grey-4); }
+.field { display: block; margin-bottom: 12px; }
+.field span { display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px; }
+.input { width: 100%; padding: 10px 12px; border: 1px solid var(--grey-2); border-radius: 8px;
+  background: var(--paper); outline: none; }
+.input:focus { border-color: var(--ink); }
+.btn { padding: 9px 14px; border-radius: 8px; border: 1px solid var(--ink); background: var(--paper);
+  font-weight: 600; white-space: nowrap; }
+.btn:hover { background: var(--grey-1); }
+.btn.primary { background: var(--ink); color: var(--paper); }
+.btn.primary:hover { background: #222; }
+.btn.ghost { border-color: var(--grey-2); }
+.btn.small { padding: 5px 10px; font-size: 13px; }
+.btn:disabled { opacity: .45; cursor: default; }
+.error { color: var(--ink); background: var(--grey-1); border-left: 3px solid var(--ink);
+  padding: 8px 10px; margin-top: 12px; font-size: 13px; }
+
+/* ---------- Üst bar ---------- */
+header { position: sticky; top: 0; z-index: 5; background: var(--paper); border-bottom: 1px solid var(--grey-2); }
+.bar { display: flex; align-items: center; gap: 16px; padding: 12px 20px; flex-wrap: wrap; }
+.brand { font-weight: 800; font-size: 20px; text-decoration: none; letter-spacing: -0.02em; }
+.brand-sub { color: var(--grey-4); font-weight: 500; }
+.bar .spacer { flex: 1; }
+.me { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--grey-4); }
+.me select { padding: 6px 8px; border: 1px solid var(--grey-2); border-radius: 8px; background: var(--paper); color: var(--ink); }
+
+/* Durum sayaçları */
+.stats { display: flex; gap: 6px; padding: 0 20px 12px; flex-wrap: wrap; }
+.stat { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border: 1px solid var(--grey-2);
+  border-radius: 999px; background: var(--paper); font-size: 12.5px; }
+.stat b { font-weight: 600; }
+.stat.active { border-color: var(--ink); background: var(--ink); color: var(--paper); }
+.stat.active .dot { border-color: var(--paper); }
+
+/* Durum noktaları: nokta motifi, sadece siyah-beyaz-gri */
+.dot { width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid var(--ink); flex: none; display: inline-block; }
+.d-yazilmadi { background: transparent; }
+.d-yazildi { background: linear-gradient(90deg, var(--ink) 50%, transparent 50%); }
+.d-devam { background: var(--grey-3); border-color: var(--grey-3); }
+.d-olumlu { background: var(--ink); }
+.d-toplanti { background: var(--ink); box-shadow: 0 0 0 2px var(--paper), 0 0 0 3.5px var(--ink); }
+.d-bulunamadi { border-style: dashed; border-color: var(--grey-3); }
+.d-edilmeyecek { border-color: var(--grey-2); background: var(--grey-2); }
+
+/* ---------- Araç çubuğu ---------- */
+.toolbar { display: flex; gap: 8px; padding: 12px 20px; flex-wrap: wrap; align-items: center; }
+.toolbar .input { width: auto; }
+#q { flex: 1; min-width: 200px; }
+.toolbar select.input { padding-right: 28px; }
+.count { color: var(--grey-4); font-size: 13px; padding: 0 20px 8px; }
+
+/* ---------- Tablo ---------- */
+.table-wrap { padding: 0 20px 40px; overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+th { text-align: left; font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em;
+  color: var(--grey-4); padding: 8px 10px; border-bottom: 1px solid var(--ink); white-space: nowrap; }
+td { padding: 9px 10px; border-bottom: 1px solid var(--grey-2); vertical-align: middle; }
+tbody tr { cursor: pointer; }
+tbody tr:hover td { background: var(--grey-1); }
+td.num { color: var(--grey-3); font-variant-numeric: tabular-nums; width: 1%; }
+td.club { font-weight: 600; }
+td.uni { color: var(--grey-4); max-width: 220px; }
+td.ig a { text-decoration: none; border-bottom: 1px solid var(--grey-2); }
+td.ig .none { color: var(--grey-3); }
+td.who, td.when { color: var(--grey-4); font-size: 13px; white-space: nowrap; }
+.status-select { display: inline-flex; align-items: center; gap: 6px; }
+.status-select select { border: 1px solid transparent; background: transparent; padding: 3px 4px; border-radius: 6px; }
+.status-select select:hover { border-color: var(--grey-2); }
+tr.muted td { color: var(--grey-3); }
+tr.muted td.club { text-decoration: line-through; font-weight: 500; }
+.empty { padding: 40px; text-align: center; color: var(--grey-4); }
+
+/* ---------- Kulüp penceresi ---------- */
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 20; display: flex; justify-content: flex-end; }
+.panel { width: 100%; max-width: 520px; height: 100%; background: var(--paper); overflow-y: auto;
+  border-left: 1px solid var(--ink); padding: 24px; display: flex; flex-direction: column; gap: 20px; }
+.panel-head { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+.panel-head h2 { margin: 0; font-size: 22px; font-weight: 800; letter-spacing: -0.01em; line-height: 1.2; }
+.panel-head .uni-name { color: var(--grey-4); margin-top: 4px; }
+.close { border: none; background: none; font-size: 22px; line-height: 1; padding: 4px; }
+.section h3 { font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em;
+  color: var(--grey-4); margin: 0 0 8px; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.handle { font-weight: 600; font-size: 16px; }
+textarea.input { min-height: 120px; resize: vertical; line-height: 1.5; }
+#msg { min-height: 300px; }
+.pills { display: flex; flex-wrap: wrap; gap: 6px; }
+.pill { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px;
+  border: 1px solid var(--grey-2); background: var(--paper); font-size: 13px; }
+.pill.on { border-color: var(--ink); background: var(--ink); color: var(--paper); }
+.pill.on .dot { border-color: var(--paper); }
+/* Siyah zemin üzerinde noktaların renklerini ters çevir */
+.pill.on .d-yazildi, .stat.active .d-yazildi { background: linear-gradient(90deg, var(--paper) 50%, transparent 50%); }
+.pill.on .d-olumlu, .stat.active .d-olumlu,
+.pill.on .d-toplanti, .stat.active .d-toplanti { background: var(--paper); box-shadow: none; }
+.meta { font-size: 12.5px; color: var(--grey-4); }
+.danger { color: var(--grey-4); border-color: var(--grey-2); }
+.danger:hover { color: var(--ink); border-color: var(--ink); }
+
+/* Bildirim */
+#toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--paper);
+  padding: 10px 16px; border-radius: 8px; font-size: 13px; z-index: 30; opacity: 0; transition: opacity .2s; pointer-events: none; }
+#toast.show { opacity: 1; }
+
+@media (max-width: 720px) {
+  .bar, .toolbar, .stats, .table-wrap, .count { padding-left: 16px; padding-right: 16px; }
+  td.uni, th.uni, td.when, th.when, td.num, th.num { display: none; }
+  .panel { padding: 16px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ======================= Giriş ======================= -->
+<section id="login" class="hidden">
+  <form class="login-card" id="login-form">
+    <h1>UniPakt.</h1>
+    <p>Davet paneli</p>
+    <label class="field"><span>E-posta</span><input class="input" id="email" type="email" autocomplete="username" required></label>
+    <label class="field"><span>Şifre</span><input class="input" id="password" type="password" autocomplete="current-password" required></label>
+    <button class="btn primary" style="width:100%" type="submit">Giriş yap</button>
+    <div id="login-error" class="error hidden"></div>
+  </form>
+</section>
+
+<!-- ======================= Uygulama ======================= -->
+<section id="app" class="hidden">
+  <header>
+    <div class="bar">
+      <a class="brand" href="https://unipakt.com" target="_blank" rel="noopener">UniPakt.</a>
+      <span class="brand-sub">Davet paneli</span>
+      <span class="spacer"></span>
+      <label class="me">Ben:
+        <select id="me"></select>
+      </label>
+      <button class="btn ghost small" id="logout">Çıkış</button>
+    </div>
+    <div class="stats" id="stats"></div>
+  </header>
+
+  <div class="toolbar">
+    <input class="input" id="q" type="search" placeholder="Kulüp, üniversite veya Instagram ara…">
+    <select class="input" id="f-uni"><option value="">Tüm üniversiteler</option></select>
+    <select class="input" id="f-ig">
+      <option value="">Instagram: hepsi</option>
+      <option value="var">Instagram var</option>
+      <option value="yok">Instagram yok</option>
+    </select>
+    <button class="btn" id="add-btn">+ Kulüp ekle</button>
+  </div>
+  <div class="count" id="count"></div>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr>
+        <th class="num">#</th><th class="uni">Üniversite</th><th>Kulüp</th><th>Instagram</th>
+        <th>Durum</th><th>Kim</th><th class="when">Güncelleme</th>
+      </tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <div id="empty" class="empty hidden"></div>
+  </div>
+</section>
+
+<!-- ======================= Kulüp penceresi ======================= -->
+<div class="overlay hidden" id="overlay">
+  <aside class="panel" id="panel" role="dialog" aria-modal="true"></aside>
+</div>
+
+<div id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* =========================================================================
+   AYARLAR — değiştirmen gerekebilecek her şey burada
+   ========================================================================= */
+const SUPABASE_URL = "https://htybytusahvzbduzkdpv.supabase.co";
+// Herkese açık (publishable) anahtar: sayfada durması normal ve güvenli.
+// Asıl koruma veritabanındaki izin listesi (izinli_kullanicilar tablosu).
+const SUPABASE_KEY = "sb_publishable_TqjzE3adPOlunbUR2kmVow_oAH_9WiJ";
+
+const KISILER = ["Mehmet Emin Soyal", "Ömer Akif Tonbul", "Uğur Sağında"];
+
+const DURUMLAR = [
+  { ad: "Yazılmadı",          cls: "d-yazilmadi" },
+  { ad: "Yazıldı",            cls: "d-yazildi" },
+  { ad: "Devam ediyor",       cls: "d-devam" },
+  { ad: "Olumlu",             cls: "d-olumlu" },
+  { ad: "Toplantı ayarlandı", cls: "d-toplanti" },
+  { ad: "Kişi bulunamadı",    cls: "d-bulunamadi" },
+  { ad: "Davet edilmeyecek",  cls: "d-edilmeyecek" },
+];
+
+// Davet mesajı. {SELAM} kısmı kulüp adıyla otomatik doldurulur.
+const MESAJ = `Merhaba {SELAM}
+
+Biz, İstinye Üniversitesi ve İstanbul Üniversitesi-Cerrahpaşa’da öğrenim gören üniversite öğrencileriyiz.
+
+Bir süredir farklı üniversitelerdeki öğrenci kulüplerini ve topluluklarını bir araya getirecek bir yapı üzerine çalışıyoruz. Amacımız; kulüplerin birbirini tanıdığı, iletişimde kaldığı, ortak etkinlikler ve projeler geliştirebildiği, zamanla farklı üniversiteleri kapsayan aktif bir öğrenci ağı oluşturmak.
+
+Her kulüp kendi kimliğini korurken farklı üniversitelerdeki topluluklarla iletişim kurabilecek Bu nedenle sizinle ile de tanışmak, üzerinde çalıştığımız projeyi paylaşmak ve sizin fikirlerinizi dinlemek isteriz.
+
+Uygun olduğunuz gün ve saatleri bizimle paylaşabilirseniz yönetim ekibinizle bire bir kısa bir çevrim içi toplantı gerçekleştirmek isteriz.
+
+Görüşmek dileğiyle,
+Mehmet Emin Soyal
+Organizer
+UniPakt Öğrenci Topluluğu`;
+
+const MAX_SATIR = 300; // tabloda aynı anda gösterilecek en fazla satır
+
+/* =========================================================================
+   Durum (state)
+   ========================================================================= */
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+let rows = [];               // tüm kulüpler
+let openId = null;           // açık penceredeki kulübün id'si
+let filtDurum = "";          // üstteki sayaçtan seçilen durum
+let channel = null;
+
+const $ = (sel) => document.querySelector(sel);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) =>
+  ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const trLower = (s) => String(s ?? "").toLocaleLowerCase("tr-TR");
+const durumCls = (ad) => (DURUMLAR.find((d) => d.ad === ad) || DURUMLAR[0]).cls;
+
+function store(key, val) { try { localStorage.setItem(key, val); } catch (e) {} }
+function load(key) { try { return localStorage.getItem(key); } catch (e) { return null; } }
+
+function toast(text) {
+  const t = $("#toast");
+  t.textContent = text;
+  t.classList.add("show");
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => t.classList.remove("show"), 1800);
+}
+
+/* Python script'teki norm_key ile aynı: aynı kulübün farklı yazımlarını eşleştirir */
+function normKey(name) {
+  const map = { ç:"c", ğ:"g", ı:"i", ö:"o", ş:"s", ü:"u", Ç:"C", Ğ:"G", İ:"I", Ö:"O", Ş:"S", Ü:"U", â:"a", î:"i", û:"u" };
+  let s = String(name).replace(/\(.*?\)|\s[-–]\s.*$/g, "");
+  s = s.replace(/[çğıöşüÇĞİÖŞÜâîû]/g, (c) => map[c]).toLowerCase();
+  s = s.replace(/\b(kulubu|kulup|toplulugu|club|society)\b/g, "");
+  return s.replace(/[^a-z0-9]/g, "");
+}
+
+/* Instagram girişini temizle: "@ad", "instagram.com/ad/" → "ad" */
+function cleanHandle(v) {
+  v = String(v || "").trim().replace(/^@/, "");
+  const m = v.match(/instagram\.com\/([A-Za-z0-9_.]+)/i);
+  if (m) v = m[1];
+  v = v.replace(/\/+$/, "");
+  return /^[A-Za-z0-9_.]{1,30}$/.test(v) ? v.toLowerCase() : null;
+}
+
+/* Selam satırı: kulüp adında üniversite zaten geçiyorsa tekrar yazma */
+function selam(r) {
+  const words = trLower(r.universite).split(/\s+/)
+    .filter((w) => w.length > 3 && !["üniversitesi", "istanbul", "i̇stanbul"].includes(w));
+  const club = trLower(r.kulup);
+  const hasUni = words.some((w) => club.includes(w));
+  return hasUni ? r.kulup : `${r.universite} ${r.kulup}`;
+}
+const mesaj = (r) => MESAJ.replace("{SELAM}", selam(r));
+
+function ago(iso) {
+  if (!iso) return "";
+  const d = (Date.now() - new Date(iso)) / 1000;
+  if (d < 60) return "az önce";
+  if (d < 3600) return `${Math.floor(d / 60)} dk önce`;
+  if (d < 86400) return `${Math.floor(d / 3600)} sa önce`;
+  if (d < 86400 * 30) return `${Math.floor(d / 86400)} gün önce`;
+  return new Date(iso).toLocaleDateString("tr-TR");
+}
+
+async function copy(text) {
+  try { await navigator.clipboard.writeText(text); return true; }
+  catch (e) {
+    const ta = document.createElement("textarea");
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    const ok = document.execCommand("copy"); ta.remove(); return ok;
+  }
+}
+
+/* =========================================================================
+   Giriş / çıkış
+   ========================================================================= */
+async function init() {
+  const { data } = await sb.auth.getSession();
+  if (data.session) await start(); else showLogin();
+}
+
+function showLogin(msg) {
+  $("#app").classList.add("hidden");
+  $("#login").classList.remove("hidden");
+  const e = $("#login-error");
+  if (msg) { e.textContent = msg; e.classList.remove("hidden"); } else e.classList.add("hidden");
+}
+
+$("#login-form").addEventListener("submit", async (ev) => {
+  ev.preventDefault();
+  const btn = ev.submitter; btn.disabled = true;
+  const { error } = await sb.auth.signInWithPassword({ email: $("#email").value.trim(), password: $("#password").value });
+  btn.disabled = false;
+  if (error) return showLogin("E-posta veya şifre hatalı.");
+  await start();
+});
+
+$("#logout").addEventListener("click", async () => {
+  if (channel) sb.removeChannel(channel);
+  await sb.auth.signOut();
+  rows = [];
+  showLogin();
+});
+
+async function start() {
+  const { data: izinli } = await sb.rpc("izinli_mi");
+  if (!izinli) {
+    await sb.auth.signOut();
+    return showLogin("Bu hesabın panele erişim izni yok.");
+  }
+  $("#login").classList.add("hidden");
+  $("#app").classList.remove("hidden");
+
+  // "Ben" seçimi (bu tarayıcıda hatırlanır)
+  const me = $("#me");
+  me.innerHTML = KISILER.map((k) => `<option>${esc(k)}</option>`).join("");
+  const saved = load("davet.me");
+  if (saved && KISILER.includes(saved)) me.value = saved;
+  me.onchange = () => store("davet.me", me.value);
+
+  await fetchAll();
+  subscribe();
+}
+
+/* =========================================================================
+   Veri
+   ========================================================================= */
+async function fetchAll() {
+  $("#count").textContent = "Yükleniyor…";
+  const all = [];
+  for (let from = 0; ; from += 1000) {
+    const { data, error } = await sb.from("davet_kulupleri").select("*")
+      .order("universite").order("kulup").range(from, from + 999);
+    if (error) { $("#count").textContent = "Veri yüklenemedi: " + error.message; return; }
+    all.push(...data);
+    if (data.length < 1000) break;
+  }
+  rows = all;
+  fillUniFilter();
+  render();
+}
+
+/* Diğer kişilerin değişikliklerini canlı al */
+function subscribe() {
+  if (channel) sb.removeChannel(channel);
+  channel = sb.channel("davet")
+    .on("postgres_changes", { event: "*", schema: "public", table: "davet_kulupleri" }, (p) => {
+      if (p.eventType === "DELETE") rows = rows.filter((r) => r.id !== p.old.id);
+      else {
+        const i = rows.findIndex((r) => r.id === p.new.id);
+        if (i >= 0) rows[i] = p.new; else rows.push(p.new);
+      }
+      if (p.eventType !== "UPDATE") fillUniFilter();
+      render();
+      if (openId && (p.new?.id === openId || p.old?.id === openId)) {
+        if (p.eventType === "DELETE") closePanel(); else refreshPanelMeta();
+      }
+    })
+    .subscribe();
+}
+
+async function update(id, patch) {
+  const i = rows.findIndex((r) => r.id === id);
+  const before = rows[i];
+  rows[i] = { ...before, ...patch, updated_at: new Date().toISOString() }; // anında göster
+  render();
+  const { data, error } = await sb.from("davet_kulupleri").update(patch).eq("id", id).select().single();
+  if (error) { rows[i] = before; render(); toast("Kaydedilemedi: " + error.message); return null; }
+  rows[i] = data; render();
+  return data;
+}
+
+/* Durum değişince "kim" alanı da değişen kişi olur */
+function setDurum(id, durum) {
+  return update(id, { durum, yazan: durum === "Yazılmadı" ? null : $("#me").value });
+}
+
+/* =========================================================================
+   Tablo
+   ========================================================================= */
+function fillUniFilter() {
+  const sel = $("#f-uni");
+  const current = sel.value || load("davet.uni") || "";
+  const unis = [...new Set(rows.map((r) => r.universite))].sort((a, b) => a.localeCompare(b, "tr"));
+  sel.innerHTML = `<option value="">Tüm üniversiteler (${unis.length})</option>` +
+    unis.map((u) => `<option>${esc(u)}</option>`).join("");
+  if (unis.includes(current)) sel.value = current;
+}
+
+function filtered() {
+  const q = trLower($("#q").value.trim());
+  const uni = $("#f-uni").value;
+  const ig = $("#f-ig").value;
+  return rows.filter((r) =>
+    (!uni || r.universite === uni) &&
+    (!filtDurum || r.durum === filtDurum) &&
+    (!ig || (ig === "var" ? !!r.instagram : !r.instagram)) &&
+    (!q || trLower(`${r.kulup} ${r.universite} ${r.instagram || ""} ${r.notlar || ""}`).includes(q)));
+}
+
+function renderStats() {
+  const uni = $("#f-uni").value;
+  const base = uni ? rows.filter((r) => r.universite === uni) : rows;
+  const n = (ad) => base.filter((r) => r.durum === ad).length;
+  $("#stats").innerHTML =
+    `<button class="stat ${filtDurum ? "" : "active"}" data-d=""><b>${base.length}</b> Tümü</button>` +
+    DURUMLAR.map((d) => `<button class="stat ${filtDurum === d.ad ? "active" : ""}" data-d="${esc(d.ad)}">
+      <span class="dot ${d.cls}"></span><b>${n(d.ad)}</b> ${esc(d.ad)}</button>`).join("");
+}
+
+function render() {
+  renderStats();
+  const list = filtered();
+  const shown = list.slice(0, MAX_SATIR);
+  $("#count").textContent = list.length > MAX_SATIR
+    ? `${list.length} sonuç · ilk ${MAX_SATIR} gösteriliyor, aramayı ya da filtreyi daralt`
+    : `${list.length} sonuç`;
+  $("#empty").classList.toggle("hidden", list.length > 0);
+  $("#empty").textContent = rows.length ? "Bu filtreye uyan kulüp yok." : "Henüz kulüp yok. GitHub'da kulüp taramasını çalıştır ya da '+ Kulüp ekle' ile ekle.";
+
+  $("#rows").innerHTML = shown.map((r, i) => {
+    const muted = r.durum === "Davet edilmeyecek";
+    const igCell = r.instagram
+      ? `<a href="https://instagram.com/${esc(r.instagram)}" target="_blank" rel="noopener" data-stop>@${esc(r.instagram)}</a>`
+      : `<span class="none">—</span>`;
+    return `<tr data-id="${r.id}" class="${muted ? "muted" : ""}">
+      <td class="num">${i + 1}</td>
+      <td class="uni">${esc(r.universite)}</td>
+      <td class="club">${esc(r.kulup)}</td>
+      <td class="ig">${igCell}</td>
+      <td><span class="status-select" data-stop><span class="dot ${durumCls(r.durum)}"></span>
+        <select data-status="${r.id}">${DURUMLAR.map((d) =>
+          `<option ${d.ad === r.durum ? "selected" : ""}>${esc(d.ad)}</option>`).join("")}</select></span></td>
+      <td class="who">${esc(firstName(r.yazan))}</td>
+      <td class="when">${esc(ago(r.durum_tarihi || r.updated_at))}</td>
+    </tr>`;
+  }).join("");
+}
+const firstName = (s) => (s ? s.split(" ")[0] : "");
+
+$("#rows").addEventListener("click", (ev) => {
+  if (ev.target.closest("[data-stop]")) return;
+  const tr = ev.target.closest("tr[data-id]");
+  if (tr) openPanel(tr.dataset.id);
+});
+$("#rows").addEventListener("change", (ev) => {
+  const id = ev.target.dataset.status;
+  if (id) setDurum(id, ev.target.value);
+});
+$("#stats").addEventListener("click", (ev) => {
+  const b = ev.target.closest("[data-d]");
+  if (!b) return;
+  filtDurum = b.dataset.d;
+  render();
+});
+$("#q").addEventListener("input", render);
+$("#f-uni").addEventListener("change", () => { store("davet.uni", $("#f-uni").value); render(); });
+$("#f-ig").addEventListener("change", render);
+
+/* =========================================================================
+   Kulüp penceresi
+   ========================================================================= */
+function openPanel(id) {
+  openId = id;
+  const r = rows.find((x) => x.id === id);
+  if (!r) return;
+  const searchUrl = "https://www.google.com/search?q=" +
+    encodeURIComponent(`site:instagram.com "${r.kulup}" ${r.universite}`);
+
+  $("#panel").innerHTML = `
+    <div class="panel-head">
+      <div><h2>${esc(r.kulup)}</h2><div class="uni-name">${esc(r.universite)}</div></div>
+      <button class="close" id="p-close" aria-label="Kapat">×</button>
+    </div>
+
+    <div class="section">
+      <h3>Instagram</h3>
+      ${r.instagram ? `
+        <div class="row">
+          <span class="handle">@${esc(r.instagram)}</span>
+          <a class="btn primary small" href="https://instagram.com/${esc(r.instagram)}" target="_blank" rel="noopener">Profili aç ↗</a>
+          <button class="btn small" id="p-copy-ig">Kullanıcı adını kopyala</button>
+          <button class="btn ghost small" id="p-edit-ig">Değiştir</button>
+        </div>` : ""}
+      <div class="row ${r.instagram ? "hidden" : ""}" id="p-ig-form" style="margin-top:8px">
+        <input class="input" id="p-ig" placeholder="kullanıcı adı veya profil linki" style="flex:1;min-width:180px" value="${esc(r.instagram || "")}">
+        <button class="btn small" id="p-ig-save">Kaydet</button>
+        <a class="btn ghost small" href="${searchUrl}" target="_blank" rel="noopener">Instagram'da ara ↗</a>
+      </div>
+      ${r.eposta ? `<div class="meta" style="margin-top:8px">E-posta: ${esc(r.eposta)}</div>` : ""}
+    </div>
+
+    <div class="section">
+      <h3>Mesaj</h3>
+      <textarea class="input" id="msg">${esc(mesaj(r))}</textarea>
+      <div class="row" style="margin-top:8px">
+        <button class="btn primary" id="p-copy-send">Kopyala ve “Yazıldı” yap</button>
+        <button class="btn" id="p-copy">Sadece kopyala</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>Durum</h3>
+      <div class="pills" id="p-pills"></div>
+      <div class="meta" id="p-meta" style="margin-top:8px"></div>
+    </div>
+
+    <div class="section">
+      <h3>Notlar</h3>
+      <textarea class="input" id="p-notes" placeholder="Örn. başkan DM'den döndü, toplantı perşembe…">${esc(r.notlar || "")}</textarea>
+    </div>
+
+    <div class="section meta">
+      ${r.kaynak && r.kaynak.startsWith("http") ? `Kaynak: <a href="${esc(r.kaynak)}" target="_blank" rel="noopener">${esc(new URL(r.kaynak).hostname)}</a> · ` : ""}
+      <button class="btn small danger" id="p-delete">Kulübü sil</button>
+    </div>`;
+
+  refreshPanelMeta();
+  $("#overlay").classList.remove("hidden");
+
+  $("#p-close").onclick = closePanel;
+  $("#p-copy").onclick = async () => { if (await copy($("#msg").value)) toast("Mesaj kopyalandı"); };
+  $("#p-copy-send").onclick = async () => {
+    if (await copy($("#msg").value)) { await setDurum(id, "Yazıldı"); refreshPanelMeta(); toast("Kopyalandı · Yazıldı olarak işaretlendi"); }
+  };
+  if ($("#p-copy-ig")) $("#p-copy-ig").onclick = async () => { if (await copy(r.instagram)) toast("Kullanıcı adı kopyalandı"); };
+  if ($("#p-edit-ig")) $("#p-edit-ig").onclick = () => $("#p-ig-form").classList.toggle("hidden");
+  $("#p-ig-save").onclick = async () => {
+    const raw = $("#p-ig").value;
+    const h = raw.trim() ? cleanHandle(raw) : null;
+    if (raw.trim() && !h) return toast("Geçersiz Instagram kullanıcı adı");
+    if (await update(id, { instagram: h })) { toast("Instagram kaydedildi"); openPanel(id); }
+  };
+  $("#p-notes").onchange = async (ev) => { if (await update(id, { notlar: ev.target.value.trim() || null })) toast("Not kaydedildi"); };
+  $("#p-delete").onclick = async () => {
+    if (!confirm(`"${r.kulup}" silinsin mi? Bu geri alınamaz.`)) return;
+    const { error } = await sb.from("davet_kulupleri").delete().eq("id", id);
+    if (error) return toast("Silinemedi: " + error.message);
+    rows = rows.filter((x) => x.id !== id); fillUniFilter(); render(); closePanel(); toast("Silindi");
+  };
+}
+
+function refreshPanelMeta() {
+  const r = rows.find((x) => x.id === openId);
+  if (!r || !$("#p-pills")) return;
+  $("#p-pills").innerHTML = DURUMLAR.map((d) =>
+    `<button class="pill ${d.ad === r.durum ? "on" : ""}" data-pd="${esc(d.ad)}"><span class="dot ${d.cls}"></span>${esc(d.ad)}</button>`).join("");
+  $("#p-pills").onclick = async (ev) => {
+    const b = ev.target.closest("[data-pd]");
+    if (b) { await setDurum(openId, b.dataset.pd); refreshPanelMeta(); }
+  };
+  $("#p-meta").textContent = r.yazan
+    ? `${r.yazan} · ${ago(r.durum_tarihi || r.updated_at)}`
+    : "Henüz kimse yazmadı";
+}
+
+function closePanel() { openId = null; $("#overlay").classList.add("hidden"); }
+$("#overlay").addEventListener("click", (ev) => { if (ev.target.id === "overlay") closePanel(); });
+document.addEventListener("keydown", (ev) => { if (ev.key === "Escape" && openId) closePanel(); });
+
+/* =========================================================================
+   Elle kulüp ekleme
+   ========================================================================= */
+$("#add-btn").addEventListener("click", () => {
+  openId = "__new";
+  const unis = [...new Set(rows.map((r) => r.universite))].sort((a, b) => a.localeCompare(b, "tr"));
+  $("#panel").innerHTML = `
+    <div class="panel-head"><h2>Kulüp ekle</h2><button class="close" id="p-close" aria-label="Kapat">×</button></div>
+    <label class="field"><span>Üniversite</span>
+      <input class="input" id="n-uni" list="uni-list" required value="${esc($("#f-uni").value)}">
+      <datalist id="uni-list">${unis.map((u) => `<option value="${esc(u)}">`).join("")}</datalist></label>
+    <label class="field"><span>Kulüp adı</span><input class="input" id="n-club" required></label>
+    <label class="field"><span>Instagram (isteğe bağlı)</span><input class="input" id="n-ig" placeholder="kullanıcı adı veya link"></label>
+    <div><button class="btn primary" id="n-save">Ekle</button></div>`;
+  $("#overlay").classList.remove("hidden");
+  $("#p-close").onclick = closePanel;
+  $("#n-save").onclick = async () => {
+    const universite = $("#n-uni").value.trim(), kulup = $("#n-club").value.trim();
+    const rawIg = $("#n-ig").value.trim(), instagram = rawIg ? cleanHandle(rawIg) : null;
+    if (!universite || !kulup) return toast("Üniversite ve kulüp adı gerekli");
+    if (rawIg && !instagram) return toast("Geçersiz Instagram kullanıcı adı");
+    const { data, error } = await sb.from("davet_kulupleri")
+      .insert({ universite, kulup, kulup_key: normKey(kulup) || trLower(kulup), instagram, kaynak: "elle", guven: "yüksek" })
+      .select().single();
+    if (error) return toast(error.code === "23505" ? "Bu kulüp zaten listede" : "Eklenemedi: " + error.message);
+    rows.push(data); fillUniFilter(); render(); openPanel(data.id); toast("Kulüp eklendi");
+  };
+});
+
+init();
+</script>
+</body>
+</html>

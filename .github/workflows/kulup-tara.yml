@@ -1,0 +1,68 @@
+# Kulüp tarama: GitHub'ın sunucusunda kulup_bulucu.py'yi çalıştırır ve
+# sonuçları panelin Supabase veritabanına yükler.
+#
+# Çalıştırmak için: GitHub'da repo → Actions → "Kulüp tarama" → Run workflow
+name: Kulüp tarama
+
+on:
+  workflow_dispatch:
+    inputs:
+      sadece:
+        description: "Sadece adında bu metin geçen üniversiteler (boş = hepsi)"
+        required: false
+        default: ""
+  # Haftalık otomatik tarama istersen aşağıdaki iki satırın başındaki # işaretini kaldır
+  # (Pazartesi 06:00 İstanbul saati):
+  # schedule:
+  #   - cron: "0 3 * * 1"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kulup-tara
+  cancel-in-progress: false
+
+jobs:
+  tara:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    defaults:
+      run:
+        working-directory: scraper
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: scraper/requirements.txt
+
+      - name: Paketleri kur
+        run: pip install -r requirements.txt
+
+      - name: Kulüpleri tara ve Supabase'e yükle
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          SADECE: ${{ inputs.sadece }}
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_SERVICE_KEY" ]; then
+            echo "::error::SUPABASE_URL ve SUPABASE_SERVICE_KEY secret'ları eksik. README'deki 3. adıma bak."
+            exit 1
+          fi
+          if [ -n "$SADECE" ]; then
+            python kulup_bulucu.py --sadece "$SADECE"
+          else
+            python kulup_bulucu.py
+          fi
+
+      - name: Sonuç dosyalarını sakla
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kulupler
+          path: scraper/cikti/
+          if-no-files-found: ignore
+          retention-days: 14

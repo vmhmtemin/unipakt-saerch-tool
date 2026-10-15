@@ -1,0 +1,21 @@
+[
+  {
+    "ad": "Marmara Üniversitesi",
+    "kaynaklar": [
+      "https://esks.marmara.edu.tr/kulup/kulupler/mu-ogrenci-genel/marmara-universitesi-ogrenci-kulupleri.html",
+      "sayfalar/marmara.html"
+    ]
+  },
+  {
+    "ad": "Yeditepe Üniversitesi",
+    "kaynaklar": ["https://yeditepe.edu.tr", "sayfalar/yeditepe.html"]
+  },
+  {
+    "ad": "İstanbul Kültür Üniversitesi",
+    "kaynaklar": ["https://www.iku.edu.tr", "sayfalar/kultur.html"]
+  },
+  {
+    "ad": "İstanbul Bilgi Üniversitesi",
+    "kaynaklar": ["https://www.bilgi.edu.tr", "sayfalar/bilgi.html"]
+  }
+]
