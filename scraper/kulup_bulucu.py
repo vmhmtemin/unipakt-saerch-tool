@@ -282,7 +282,11 @@ def registered_domain(url: str) -> str:
     """'www.sks.bilgi.edu.tr' -> 'bilgi.edu.tr' (alt alan adlarını da kapsamak için)."""
     host = urlparse(url).netloc.lower().split(":")[0]
     parts = host.split(".")
-    return ".".join(parts[-3:]) if len(parts) >= 3 and parts[-2] in ("edu", "com", "org") else host
+    if len(parts) >= 3 and parts[-2] in ("edu", "com", "org"):   # x.edu.tr
+        if parts[-3] == "bilim" and len(parts) >= 4:            # demiroglu.bilim.edu.tr
+            return ".".join(parts[-4:])
+        return ".".join(parts[-3:])
+    return ".".join(parts[-2:]) if len(parts) >= 2 else host     # sabanciuniv.edu
 
 
 # ---------------------------------------------------------------------------
