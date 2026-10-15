@@ -96,7 +96,19 @@ th { text-align: left; font-size: 11.5px; font-weight: 600; text-transform: uppe
 td { padding: 9px 10px; border-bottom: 1px solid var(--grey-2); vertical-align: middle; }
 tbody tr { cursor: pointer; }
 tbody tr:hover td { background: var(--grey-1); }
-td.num { color: var(--grey-3); font-variant-numeric: tabular-nums; width: 1%; }
+/* Üniversite satırı (grup başlığı) */
+tr.uni-row td { padding: 14px 10px; border-bottom: 1px solid var(--grey-2); }
+tr.uni-row.open td { border-bottom-color: var(--ink); }
+.uni-line { display: flex; align-items: center; gap: 10px 14px; flex-wrap: wrap; }
+.caret { width: 14px; color: var(--grey-4); flex: none; }
+.uni-title { font-weight: 700; font-size: 15px; }
+.uni-count { color: var(--grey-4); font-size: 13px; font-variant-numeric: tabular-nums; }
+.uni-sum { display: flex; gap: 6px 12px; flex-wrap: wrap; margin-left: auto; font-size: 13px; }
+.sum-item { display: inline-flex; align-items: center; gap: 5px; }
+.sum-none { color: var(--grey-3); }
+tr.uni-row.muted .uni-title { color: var(--grey-3); text-decoration: line-through; }
+/* Kulüp satırları üniversitenin altında içeriden başlar */
+tr.club-row td.club { padding-left: 34px; }
 td.club { font-weight: 600; }
 td.uni { color: var(--grey-4); max-width: 220px; }
 td.ig a { text-decoration: none; border-bottom: 1px solid var(--grey-2); }
@@ -143,7 +155,9 @@ textarea.input { min-height: 120px; resize: vertical; line-height: 1.5; }
 
 @media (max-width: 720px) {
   .bar, .toolbar, .stats, .table-wrap, .count { padding-left: 16px; padding-right: 16px; }
-  td.uni, th.uni, td.when, th.when, td.num, th.num { display: none; }
+  td.when, th.when { display: none; }
+  .uni-sum { margin-left: 24px; }
+  tr.club-row td.club { padding-left: 20px; }
   .panel { padding: 16px; }
 }
 </style>
@@ -185,6 +199,7 @@ textarea.input { min-height: 120px; resize: vertical; line-height: 1.5; }
       <option value="var">Instagram var</option>
       <option value="yok">Instagram yok</option>
     </select>
+    <button class="btn ghost" id="toggle-all">Tümünü aç</button>
     <button class="btn" id="add-btn">+ Kulüp ekle</button>
   </div>
   <div class="count" id="count"></div>
@@ -192,8 +207,7 @@ textarea.input { min-height: 120px; resize: vertical; line-height: 1.5; }
   <div class="table-wrap">
     <table>
       <thead><tr>
-        <th class="num">#</th><th class="uni">Üniversite</th><th>Kulüp</th><th>Instagram</th>
-        <th>Durum</th><th>Kim</th><th class="when">Güncelleme</th>
+        <th>Kulüp</th><th>Instagram</th><th>Durum</th><th>Kim</th><th class="when">Güncelleme</th>
       </tr></thead>
       <tbody id="rows"></tbody>
     </table>
@@ -246,7 +260,7 @@ Mehmet Emin Soyal
 Organizer
 UniPakt Öğrenci Topluluğu`;
 
-const MAX_SATIR = 300; // tabloda aynı anda gösterilecek en fazla satır
+const acik = new Set();      // ana listede açılmış (kulüpleri görünen) üniversiteler
 
 /* =========================================================================
    Durum (state)
@@ -458,24 +472,21 @@ function renderStats() {
       <span class="dot ${d.cls}"></span><b>${n(d.ad)}</b> ${esc(d.ad)}</button>`).join("");
 }
 
-function render() {
-  renderStats();
-  const list = filtered();
-  const shown = list.slice(0, MAX_SATIR);
-  $("#count").textContent = list.length > MAX_SATIR
-    ? `${list.length} sonuç · ilk ${MAX_SATIR} gösteriliyor, aramayı ya da filtreyi daralt`
-    : `${list.length} sonuç`;
-  $("#empty").classList.toggle("hidden", list.length > 0);
-  $("#empty").textContent = rows.length ? "Bu filtreye uyan kulüp yok." : "Henüz kulüp yok. GitHub'da kulüp taramasını çalıştır ya da '+ Kulüp ekle' ile ekle.";
+/* Üniversite satırındaki özet: "● 1 Olumlu · ◐ 3 Yazıldı" (Yazılmadı hariç, sadece 0 olmayanlar) */
+function uniSummary(clubs) {
+  const parts = DURUMLAR.filter((d) => d.ad !== "Yazılmadı")
+    .map((d) => ({ d, n: clubs.filter((c) => c.durum === d.ad).length }))
+    .filter((x) => x.n > 0)
+    .map((x) => `<span class="sum-item"><span class="dot ${x.d.cls}"></span>${x.n} ${esc(x.d.ad)}</span>`);
+  return parts.length ? parts.join("") : `<span class="sum-none">Henüz yazılmadı</span>`;
+}
 
-  $("#rows").innerHTML = shown.map((r, i) => {
-    const muted = r.durum === "Davet edilmeyecek";
-    const igCell = r.instagram
-      ? `<a href="https://instagram.com/${esc(r.instagram)}" target="_blank" rel="noopener" data-stop>@${esc(r.instagram)}</a>`
-      : `<span class="none">—</span>`;
-    return `<tr data-id="${r.id}" class="${muted ? "muted" : ""}">
-      <td class="num">${i + 1}</td>
-      <td class="uni">${esc(r.universite)}</td>
+function clubRow(r) {
+  const muted = r.durum === "Davet edilmeyecek";
+  const igCell = r.instagram
+    ? `<a href="https://instagram.com/${esc(r.instagram)}" target="_blank" rel="noopener" data-stop>@${esc(r.instagram)}</a>`
+    : `<span class="none">—</span>`;
+  return `<tr data-id="${r.id}" class="club-row ${muted ? "muted" : ""}">
       <td class="club">${esc(r.kulup)}</td>
       <td class="ig">${igCell}</td>
       <td><span class="status-select" data-stop><span class="dot ${durumCls(r.durum)}"></span>
@@ -484,14 +495,62 @@ function render() {
       <td class="who">${esc(firstName(r.yazan))}</td>
       <td class="when">${esc(ago(r.durum_tarihi || r.updated_at))}</td>
     </tr>`;
+}
+
+/* Ana liste: üniversiteler; tıklanan üniversitenin altında kulüpleri açılır.
+   Arama / durum / Instagram filtresi varsa eşleşen kulübü olan üniversiteler otomatik açılır. */
+function render() {
+  renderStats();
+  const list = filtered();
+  const filterActive = !!($("#q").value.trim() || filtDurum || $("#f-ig").value);
+  const uniSel = $("#f-uni").value;
+
+  const byUni = new Map();
+  for (const r of list) {
+    if (!byUni.has(r.universite)) byUni.set(r.universite, []);
+    byUni.get(r.universite).push(r);
+  }
+  // Filtre yokken kulübü olan tüm üniversiteler görünür
+  const unis = [...byUni.keys()].sort((a, b) => a.localeCompare(b, "tr"));
+
+  $("#count").textContent = `${unis.length} üniversite · ${list.length} kulüp`;
+  $("#empty").classList.toggle("hidden", list.length > 0);
+  $("#empty").textContent = rows.length ? "Bu filtreye uyan kulüp yok." : "Henüz kulüp yok. GitHub'da kulüp taramasını çalıştır ya da '+ Kulüp ekle' ile ekle.";
+  $("#toggle-all").textContent = unis.length && unis.every((u) => acik.has(u)) ? "Tümünü kapat" : "Tümünü aç";
+
+  $("#rows").innerHTML = unis.map((u) => {
+    const all = rows.filter((r) => r.universite === u);          // özet hep tüm kulüplerden
+    const contacted = all.filter((r) => r.durum !== "Yazılmadı").length;
+    const open = filterActive || acik.has(u) || uniSel === u;
+    const allMuted = all.every((r) => r.durum === "Davet edilmeyecek");
+    const head = `<tr class="uni-row ${open ? "open" : ""} ${allMuted ? "muted" : ""}" data-uni="${esc(u)}">
+      <td colspan="5"><div class="uni-line">
+        <span class="caret">${open ? "▾" : "▸"}</span>
+        <span class="uni-title">${esc(u)}</span>
+        <span class="uni-count">${contacted}/${all.length} kulüp</span>
+        <span class="uni-sum">${uniSummary(all)}</span>
+      </div></td></tr>`;
+    return head + (open ? byUni.get(u).map(clubRow).join("") : "");
   }).join("");
 }
 const firstName = (s) => (s ? s.split(" ")[0] : "");
 
 $("#rows").addEventListener("click", (ev) => {
   if (ev.target.closest("[data-stop]")) return;
+  const uniTr = ev.target.closest("tr[data-uni]");
+  if (uniTr) {
+    const u = uniTr.dataset.uni;
+    acik.has(u) ? acik.delete(u) : acik.add(u);
+    return render();
+  }
   const tr = ev.target.closest("tr[data-id]");
   if (tr) openPanel(tr.dataset.id);
+});
+$("#toggle-all").addEventListener("click", () => {
+  const unis = [...new Set(filtered().map((r) => r.universite))];
+  const allOpen = unis.length && unis.every((u) => acik.has(u));
+  unis.forEach((u) => (allOpen ? acik.delete(u) : acik.add(u)));
+  render();
 });
 $("#rows").addEventListener("change", (ev) => {
   const id = ev.target.dataset.status;
