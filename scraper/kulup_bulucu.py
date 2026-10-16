@@ -66,6 +66,8 @@ NOISE_RE = re.compile(
     r"etkinli[ğg]i|event|workshop|screening|sempozyum|welcome|quiz|night|activities|"
     r"tan[ıi][şs]ma|tak[ıi]m[ıi]m[ıi]z|proje|project|kul[üu]p ba[şs]kan|[üu]yeli[ğg]i|ilkeler|"
     r"dan[ıi][şs]man|koordinat[öo]r|sorumlu|advisor|"
+    r"ho[şs] geldiniz|tamamlad[ıi]|ger[çc]ekle[şs]tir|d[üu]zenle|sahnelen|[öo]d[üu]llend|se[çc]ildi|"
+    r"hakk[ıi]nda|vizyon|faaliyet|gezisi|kongre|[çc]al[ıi][şs]tay|belgeler|rehberi|kurarak|"
     r"\b20\d\d\b|\s[xX]\s",
     re.I,
 )
@@ -216,7 +218,7 @@ def looks_like_club(text: str) -> bool:
         return False  # bu bir hesap adı / e-posta / link, kulüp adı değil
     if " " not in text and text == text.lower():
         return False  # "yeditepetipkulubu" gibi tek kelimelik Instagram kullanıcı adı
-    if re.match(r"^\d", text) or any(ch in text for ch in "?:;") or text.endswith("."):
+    if re.match(r"^\d", text) or any(ch in text for ch in "?:;!“”\"") or text.endswith("."):
         return False  # tarih, soru, cümle
     if len(text.split()) > 10:
         return False  # paragraf cümlesi
