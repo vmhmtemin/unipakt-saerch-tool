@@ -120,6 +120,26 @@ class Club:
 # İnternetten sayfa çekme (robots.txt'ye uyarak)
 # ---------------------------------------------------------------------------
 
+def pdf_to_html(data: bytes) -> tuple[str | None, str | None]:
+    """Kulüp listesi PDF olan siteler için: PDF'teki her satırı ayrı bir <p> yapar,
+    böylece normal sayfa ayrıştırıcısı kulüp adlarını ve iletişimleri bulabilir."""
+    try:
+        from io import BytesIO
+        from pypdf import PdfReader
+    except ImportError:
+        return None, "PDF okumak için pypdf gerekli (pip install pypdf)"
+    try:
+        reader = PdfReader(BytesIO(data))
+        lines = []
+        for page in reader.pages:
+            lines += (page.extract_text() or "").splitlines()
+    except Exception as e:  # bozuk / şifreli PDF
+        return None, f"PDF okunamadı: {e.__class__.__name__}"
+    from html import escape
+    body = "\n".join(f"<p>{escape(l.strip())}</p>" for l in lines if l.strip())
+    return f"<html><body>{body}</body></html>", None
+
+
 class Fetcher:
     def __init__(self, delay: float):
         self.delay = delay
@@ -155,7 +175,10 @@ class Fetcher:
             return None, f"bağlantı hatası: {e.__class__.__name__}"
         if r.status_code >= 400:
             return None, f"HTTP {r.status_code}"
-        if "html" not in r.headers.get("Content-Type", "html"):
+        ctype = r.headers.get("Content-Type", "html").lower()
+        if "pdf" in ctype or r.content[:5] == b"%PDF-":
+            return pdf_to_html(r.content)
+        if "html" not in ctype:
             return None, "HTML değil"
         r.encoding = r.apparent_encoding or r.encoding
         return r.text, None
@@ -251,7 +274,7 @@ def extract_clubs(html: str, url: str, universite: str) -> list[Club]:
         # (yoksa "Dans Kulübü Instagram: @x" gibi satırın tamamı ad sanılır)
         if any(looks_like_club(clean(c.get_text(" "))) for c in el.find_all(NAME_TAGS)):
             continue
-        name = clean(CONTACT_TAIL_RE.split(el.get_text(" "))[0])
+        name = clean(CONTACT_TAIL_RE.split(EMAIL_RE.sub(" ", el.get_text(" ")))[0])
         if not looks_like_club(name):
             continue
         key = norm_key(name)
